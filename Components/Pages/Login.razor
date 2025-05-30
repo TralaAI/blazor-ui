@@ -40,6 +40,7 @@
 
   private async Task HandleLogin(EditContext ctx)
   {
+    @*! TODO: Eliminate weird validation error *@
     var isValid = ctx.Validate();
     if (!isValid)
     {
