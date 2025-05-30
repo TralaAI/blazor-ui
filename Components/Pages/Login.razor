@@ -1,0 +1,73 @@
+@page "/login"
+@using Blazor.Interfaces
+@using Blazor.Models.Auth
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@inject IJSRuntime JS
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+
+
+<EditForm Model="@loginModel" OnSubmit="HandleLogin" FormName="loginForm">
+  <DataAnnotationsValidator />
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input id="email" name="Email" class="form-control" placeholder="Enter your email" @bind="loginModel.Email"
+      @bind:event="oninput" />
+    <ValidationMessage For="@(() => loginModel.Email)" />
+  </div>
+
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input id="password" name="Password" type="password" class="form-control" placeholder="Enter your password"
+      @bind="loginModel.Password" @bind:event="oninput" />
+    <ValidationMessage For="@(() => loginModel.Password)" />
+  </div>
+
+  @if (!string.IsNullOrEmpty(loginError))
+  {
+    <div class="text-danger">@loginError</div>
+  }
+
+  <button type="submit" class="btn-block">
+    Login
+  </button>
+</EditForm>
+
+@code {
+  private LoginRequest loginModel = new() { Email = string.Empty, Password = string.Empty };
+  private string? loginError;
+
+  private async Task HandleLogin(EditContext ctx)
+  {
+    var isValid = ctx.Validate();
+    if (!isValid)
+    {
+      Console.WriteLine("Validation failed:");
+      foreach (var msg in ctx.GetValidationMessages())
+        Console.WriteLine(" • " + msg);
+      return;
+    }
+
+
+    Console.WriteLine($"Email: {loginModel.Email}, Password: {loginModel.Password}");
+
+    loginError = null;
+
+    if (string.IsNullOrEmpty(loginModel.Email) || string.IsNullOrEmpty(loginModel.Password))
+    {
+      loginError = "Email and password are required.";
+      return;
+    }
+
+    var success = await AuthService.LoginAsync(loginModel.Email, loginModel.Password);
+    if (success)
+    {
+      Nav.NavigateTo("/");
+    }
+    else
+    {
+      loginError = "Invalid email or password. Please try again.";
+    }
+  }
+}
